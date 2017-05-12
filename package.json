@@ -1,6 +1,6 @@
 {
   "name": "uirouter-extended-views",
-  "version": "0.0.1-9",
+  "version": "0.1.1",
   "description": "Extended version of ui-view",
   "main": "dist/index.js",
   "jsnext:main": "index.js",

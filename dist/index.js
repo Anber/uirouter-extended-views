@@ -241,6 +241,10 @@
             value: function onTrackChange() {
                 var track = this.$scope.track;
 
+                if (track === undefined) {
+                    return;
+                }
+
                 this.onChange(Array.isArray(track) ? track : [track]);
             }
         }, {

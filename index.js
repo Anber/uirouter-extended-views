@@ -77,6 +77,10 @@ class UiViewController {
 
     onTrackChange() {
         const { track } = this.$scope;
+        if (track === undefined) {
+            return;
+        }
+
         this.onChange(Array.isArray(track) ? track : [track]);
     }
 
