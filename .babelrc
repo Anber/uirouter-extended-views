@@ -1,0 +1,13 @@
+{
+    "plugins": [
+    ],
+    "presets": [
+        [
+          "es2015",
+          {
+            "modules": "umd"
+          }
+        ],
+        "stage-0"
+    ]
+}

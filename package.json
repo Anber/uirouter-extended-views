@@ -1,0 +1,44 @@
+{
+  "name": "uirouter-extended-views",
+  "version": "0.0.1-9",
+  "description": "Extended version of ui-view",
+  "main": "dist/index.js",
+  "jsnext:main": "index.js",
+  "scripts": {
+    "build": "babel index.js --out-dir dist",
+    "test": "jest",
+    "test-watch": "jest --watch"
+  },
+  "author": "Anton Evzhakov",
+  "license": "MIT",
+  "homepage": "https://github.com/Anber/uirouter-extended-views",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Anber/uirouter-extended-views.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Anber/uirouter-extended-views/issues"
+  },
+  "devDependencies": {
+    "angular": "^1.6.4",
+    "angular-mocks": "^1.6.4",
+    "babel-cli": "^6.24.1",
+    "babel-jest": "^19.0.0",
+    "babel-preset-latest": "^6.24.1",
+    "babel-preset-stage-0": "^6.24.1",
+    "jest": "^19.0.2",
+    "lodash.defaultsdeep": "^4.6.0",
+    "regenerator-runtime": "^0.10.3"
+  },
+  "dependencies": {
+    "@uirouter/angularjs": "^1.0.3",
+    "js-md5": "^0.4.2",
+    "lodash.compact": "^3.0.1",
+    "lodash.flatmap": "^4.5.0",
+    "lodash.map": "^4.6.0",
+    "lodash.mapvalues": "^4.6.0"
+  },
+  "peerDependencies": {
+    "angular": ">=1.2.0"
+  }
+}
