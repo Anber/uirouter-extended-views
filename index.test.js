@@ -2,7 +2,7 @@ import angular from 'angular';
 import defaultsDeep from 'lodash.defaultsdeep';
 import 'angular-mocks';
 import uiRouter from '@uirouter/angularjs';
-import extendedViewsModule from './index';
+import extendedViewsModule from './src';
 
 const module = angular.mock.module;
 
