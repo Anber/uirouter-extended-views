@@ -97,11 +97,13 @@
                 exiting = _trans$treeChanges.exiting,
                 retained = _trans$treeChanges.retained;
 
-            var touchedViews = [].concat(_toConsumableArray(entering), _toConsumableArray(exiting), _toConsumableArray(retained)).reduce(function (acc, path) {
+            var touchedStates = [].concat(_toConsumableArray(entering), _toConsumableArray(exiting), _toConsumableArray(retained));
+            var touchedViews = touchedStates.reduce(function (acc, path) {
                 return [].concat(_toConsumableArray(acc), _toConsumableArray(path.views || []));
-            }, []).map(_utils.getFullViewName);
+            }, []);
+            var touchedViewsNames = touchedViews.map(_utils.getFullViewName);
 
-            var distinctView = new Set(touchedViews);
+            var distinctView = new Set(touchedViewsNames);
             distinctView.forEach(start);
             trans.promise.finally(function () {
                 return distinctView.forEach(finish);

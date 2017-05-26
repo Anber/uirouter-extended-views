@@ -71,9 +71,10 @@
             var resolve = _ref.resolve,
                 view = _objectWithoutProperties(_ref, ['resolve']);
 
+            var resolvables = (0, _utils.normalizeResolvables)(resolve);
             return _extends({}, view, {
-                resolve: resolve,
-                bindings: (resolve || []).reduce(function (acc, r) {
+                resolve: resolvables,
+                bindings: resolvables.reduce(function (acc, r) {
                     return _extends({}, acc, _defineProperty({}, r.token, '' + (0, _utils.getFullToken)(view.$name, r.token, true)));
                 }, {})
             });

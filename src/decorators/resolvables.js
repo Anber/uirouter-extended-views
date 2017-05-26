@@ -3,7 +3,7 @@ import { Resolvable } from '@uirouter/angularjs';
 import flatMap from 'lodash.flatmap';
 import compact from 'lodash.compact';
 
-import { getFullToken } from '../utils';
+import { getFullToken, normalizeResolvables } from '../utils';
 
 function prepare({ name, resolvable }) {
     const policy = resolvable.policy || {};
@@ -19,7 +19,7 @@ function prepare({ name, resolvable }) {
 export default (state, parent) => {
     const resolves = compact(flatMap(
         state.views,
-        v => (v.resolve || []).map(r => ({ name: v.$name, resolvable: r })),
+        v => normalizeResolvables(v.resolve).map(r => ({ name: v.$name, resolvable: r })),
     ));
     const resolvables = parent(state);
     if (resolves.length === 0) return resolvables;

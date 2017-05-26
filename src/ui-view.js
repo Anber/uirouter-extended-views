@@ -49,15 +49,17 @@ export default function uiView($transitions, $log) {
 
     $transitions.onStart({}, (trans) => {
         const { entering, exiting, retained } = trans.treeChanges();
-        const touchedViews = [...entering, ...exiting, ...retained]
-            .reduce((acc, path) => [...acc, ...(path.views || [])], [])
-            .map(getFullViewName);
+        const touchedStates = [...entering, ...exiting, ...retained];
+        const touchedViews = touchedStates.reduce((acc, path) => [...acc, ...(path.views || [])], []);
+        const touchedViewsNames = touchedViews.map(getFullViewName);
 
-        const distinctView = new Set(touchedViews);
+        const distinctView = new Set(touchedViewsNames);
         distinctView.forEach(start);
-        trans.promise.finally(
-            () => distinctView.forEach(finish),
-        ).catch(err => err.type !== RejectType.SUPERSEDED && $log.warn(err));
+        trans.promise
+            .finally(
+                () => distinctView.forEach(finish),
+            )
+            .catch(err => err.type !== RejectType.SUPERSEDED && $log.warn(err));
     });
 
     return {

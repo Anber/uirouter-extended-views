@@ -1,13 +1,14 @@
 import mapValues from 'lodash.mapvalues';
 
-import { getFullToken } from '../utils';
+import { getFullToken, normalizeResolvables } from '../utils';
 
 export default (state, parent) => {
     function wrap({ resolve, ...view }) {
+        const resolvables = normalizeResolvables(resolve);
         return {
             ...view,
-            resolve,
-            bindings: (resolve || []).reduce((acc, r) => ({
+            resolve: resolvables,
+            bindings: resolvables.reduce((acc, r) => ({
                 ...acc,
                 [r.token]: `${getFullToken(view.$name, r.token, true)}`,
             }), {}),

@@ -63,7 +63,7 @@
 
     exports.default = function (state, parent) {
         var resolves = (0, _lodash4.default)((0, _lodash2.default)(state.views, function (v) {
-            return (v.resolve || []).map(function (r) {
+            return (0, _utils.normalizeResolvables)(v.resolve).map(function (r) {
                 return { name: v.$name, resolvable: r };
             });
         }));
