@@ -1,70 +1,67 @@
-import map from 'lodash.map';
+import { ResolveContext, any } from '@uirouter/angularjs';
 
-import { getFullToken } from './utils';
-import { getSizeCache, getStyles } from './extendedViews';
+import UiViewSpinner from './ui-view-spinner';
+import contentCache from './content-cache';
 
 export default class UiViewController {
-    constructor($element, $scope, $q) {
+    onDestroyCallbacks = [];
+
+    constructor($state, $element, $scope, $q) {
+        this.$state = $state;
+        this.$element = $element;
+
+        const spinner = UiViewSpinner.attachTo($element);
+
         const { $cfg } = $element.data('$uiView');
-        const deps = $cfg ? map($cfg.viewDecl.resolve, 'token') : [];
+        this.deps = $cfg && $cfg.viewDecl.resolve || [];
+
+        if ($cfg) {
+            $element.html(contentCache.get($cfg.viewDecl) || null);
+        }
 
         this.$scope = $scope;
-        this.wait = promises => $q.all(promises).then(::this.onLoad, ::this.onError);
-        this.setLoadingState = (state) => {
-            const styles = getStyles();
-            const sizeCache = getSizeCache();
-            if (styles && styles.loading) {
-                $element[state ? 'addClass' : 'removeClass'](styles.loading);
-            }
 
-            if (sizeCache) {
-                $element.height(state && $cfg ? sizeCache.get($cfg.viewDecl) : 'auto');
-            }
-        };
-
-        if (deps.length) {
+        if (this.deps.length) {
+            const resolveCtx = $cfg.path && new ResolveContext($cfg.path);
             $scope.$watchGroup(
-                deps.map(token => `$parent.$resolve.${getFullToken($cfg.viewDecl.$name, token)}`),
-                ::this.onChange,
+                this.deps.map(token => () => resolveCtx.getResolvable(token).get(resolveCtx)),
+                (promises) => {
+                    spinner.show();
+
+                    if (!any(p => p !== undefined)(promises)) {
+                        return;
+                    }
+
+                    $q.all(promises).finally(() => spinner.hide());
+                },
             );
-        } else {
-            $scope.$watch('track', ::this.onTrackChange);
         }
     }
 
-    onChange(promises) {
-        this.setState('loading');
-        if (promises.every(p => p === undefined)) {
-            return;
+    $onDestroy() {
+        const $uiView = this.$element.data('$uiView');
+        if (!$uiView || !$uiView.$cfg) return;
+
+        const $cfg = $uiView.$cfg;
+        const $element = this.$element;
+
+        const trans = this.$state.transition;
+        if (trans) {
+            const entering = trans.entering();
+            const exiting = trans.exiting().filter(node => entering.indexOf(node) === -1);
+            if (exiting.indexOf($cfg.viewDecl.$context.self) !== -1) {
+                contentCache.delete($cfg.viewDecl);
+            } else {
+                contentCache.set($cfg.viewDecl, $element.html());
+            }
         }
 
-        this.wait(promises);
+        this.onDestroyCallbacks.forEach(fn => fn());
     }
 
-    onTrackChange() {
-        const { track } = this.$scope;
-        if (track === undefined) {
-            return;
-        }
-
-        this.onChange(Array.isArray(track) ? track : [track]);
-    }
-
-    onLoad() {
-        this.setState('loaded');
-    }
-
-    onError() {
-        this.setState('error');
-    }
-
-    setState(name) {
-        if (name === 'loading') {
-            this.setLoadingState(true);
-        } else {
-            this.setLoadingState(false);
-        }
+    onDestroy(fn) {
+        this.onDestroyCallbacks.push(fn);
     }
 }
 
-UiViewController.$inject = ['$element', '$scope', '$q'];
+UiViewController.$inject = ['$state', '$element', '$scope', '$q'];

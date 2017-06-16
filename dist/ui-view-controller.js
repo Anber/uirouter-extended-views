@@ -1,23 +1,25 @@
 (function (global, factory) {
     if (typeof define === "function" && define.amd) {
-        define(['exports', 'lodash.map', './utils', './extendedViews'], factory);
+        define(['exports', '@uirouter/angularjs', './ui-view-spinner', './content-cache'], factory);
     } else if (typeof exports !== "undefined") {
-        factory(exports, require('lodash.map'), require('./utils'), require('./extendedViews'));
+        factory(exports, require('@uirouter/angularjs'), require('./ui-view-spinner'), require('./content-cache'));
     } else {
         var mod = {
             exports: {}
         };
-        factory(mod.exports, global.lodash, global.utils, global.extendedViews);
+        factory(mod.exports, global.angularjs, global.uiViewSpinner, global.contentCache);
         global.uiViewController = mod.exports;
     }
-})(this, function (exports, _lodash, _utils, _extendedViews) {
+})(this, function (exports, _angularjs, _uiViewSpinner, _contentCache) {
     'use strict';
 
     Object.defineProperty(exports, "__esModule", {
         value: true
     });
 
-    var _lodash2 = _interopRequireDefault(_lodash);
+    var _uiViewSpinner2 = _interopRequireDefault(_uiViewSpinner);
+
+    var _contentCache2 = _interopRequireDefault(_contentCache);
 
     function _interopRequireDefault(obj) {
         return obj && obj.__esModule ? obj : {
@@ -50,82 +52,79 @@
     }();
 
     var UiViewController = function () {
-        function UiViewController($element, $scope, $q) {
-            var _this = this;
-
+        function UiViewController($state, $element, $scope, $q) {
             _classCallCheck(this, UiViewController);
+
+            this.onDestroyCallbacks = [];
+
+            this.$state = $state;
+            this.$element = $element;
+
+            var spinner = _uiViewSpinner2.default.attachTo($element);
 
             var _$element$data = $element.data('$uiView'),
                 $cfg = _$element$data.$cfg;
 
-            var deps = $cfg ? (0, _lodash2.default)($cfg.viewDecl.resolve, 'token') : [];
+            this.deps = $cfg && $cfg.viewDecl.resolve || [];
+
+            if ($cfg) {
+                $element.html(_contentCache2.default.get($cfg.viewDecl) || null);
+            }
 
             this.$scope = $scope;
-            this.wait = function (promises) {
-                return $q.all(promises).then(_this.onLoad.bind(_this), _this.onError.bind(_this));
-            };
-            this.setLoadingState = function (state) {
-                var styles = (0, _extendedViews.getStyles)();
-                var sizeCache = (0, _extendedViews.getSizeCache)();
-                if (styles && styles.loading) {
-                    $element[state ? 'addClass' : 'removeClass'](styles.loading);
-                }
 
-                if (sizeCache) {
-                    $element.height(state && $cfg ? sizeCache.get($cfg.viewDecl) : 'auto');
-                }
-            };
+            if (this.deps.length) {
+                var resolveCtx = $cfg.path && new _angularjs.ResolveContext($cfg.path);
+                $scope.$watchGroup(this.deps.map(function (token) {
+                    return function () {
+                        return resolveCtx.getResolvable(token).get(resolveCtx);
+                    };
+                }), function (promises) {
+                    spinner.show();
 
-            if (deps.length) {
-                $scope.$watchGroup(deps.map(function (token) {
-                    return '$parent.$resolve.' + (0, _utils.getFullToken)($cfg.viewDecl.$name, token);
-                }), this.onChange.bind(this));
-            } else {
-                $scope.$watch('track', this.onTrackChange.bind(this));
+                    if (!(0, _angularjs.any)(function (p) {
+                        return p !== undefined;
+                    })(promises)) {
+                        return;
+                    }
+
+                    $q.all(promises).finally(function () {
+                        return spinner.hide();
+                    });
+                });
             }
         }
 
         _createClass(UiViewController, [{
-            key: 'onChange',
-            value: function onChange(promises) {
-                this.setState('loading');
-                if (promises.every(function (p) {
-                    return p === undefined;
-                })) {
-                    return;
+            key: '$onDestroy',
+            value: function $onDestroy() {
+                var $uiView = this.$element.data('$uiView');
+                if (!$uiView || !$uiView.$cfg) return;
+
+                var $cfg = $uiView.$cfg;
+                var $element = this.$element;
+
+                var trans = this.$state.transition;
+                if (trans) {
+                    var entering = trans.entering();
+                    var exiting = trans.exiting().filter(function (node) {
+                        return entering.indexOf(node) === -1;
+                    });
+                    if (exiting.indexOf($cfg.viewDecl.$context.self) !== -1) {
+                        _contentCache2.default.delete($cfg.viewDecl);
+                    } else {
+                        _contentCache2.default.set($cfg.viewDecl, $element.html());
+                    }
                 }
 
-                this.wait(promises);
+                this.onDestroyCallbacks.forEach(function (fn) {
+                    return fn();
+                });
             }
         }, {
-            key: 'onTrackChange',
-            value: function onTrackChange() {
-                var track = this.$scope.track;
-
-                if (track === undefined) {
-                    return;
-                }
-
-                this.onChange(Array.isArray(track) ? track : [track]);
-            }
-        }, {
-            key: 'onLoad',
-            value: function onLoad() {
-                this.setState('loaded');
-            }
-        }, {
-            key: 'onError',
-            value: function onError() {
-                this.setState('error');
-            }
-        }, {
-            key: 'setState',
-            value: function setState(name) {
-                if (name === 'loading') {
-                    this.setLoadingState(true);
-                } else {
-                    this.setLoadingState(false);
-                }
+            key: 'onDestroy',
+            value: function onDestroy(fn) {
+                this.onDestroyCallbacks.push(fn);
             }
         }]);
 
@@ -135,5 +134,5 @@
     exports.default = UiViewController;
 
 
-    UiViewController.$inject = ['$element', '$scope', '$q'];
+    UiViewController.$inject = ['$state', '$element', '$scope', '$q'];
 });

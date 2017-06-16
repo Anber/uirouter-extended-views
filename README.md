@@ -50,7 +50,7 @@ If you want to show any preloader in your view, you can specify css class which 
 app.config(($extendedViewsProvider) => {
     'ngInject';
 
-    $extendedViewsProvider.setStyles({
+    $extendedViewsProvider.setDefaultClasses({
         loading: 'loading',
     });
 });

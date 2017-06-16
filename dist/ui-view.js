@@ -38,6 +38,27 @@
         }
     }
 
+    function getAllSyncTokens(state) {
+        var tokens = state.resolvables.filter(function (r) {
+            return !r.policy || r.policy.async !== 'NOWAIT';
+        }).map(function (r) {
+            return r.token;
+        });
+        if (!state.parent) {
+            return tokens;
+        }
+
+        return tokens.concat(getAllSyncTokens(state.parent));
+    }
+
+    function getOrResolve(injector, token) {
+        try {
+            return injector.get(token);
+        } catch (ex) {
+            return injector.getAsync(token);
+        }
+    }
+
     function uiView($transitions, $log) {
         var views = {};
 
@@ -92,18 +113,72 @@
         };
 
         $transitions.onStart({}, function (trans) {
+            var injector = trans.injector();
+            var $q = injector.get('$q');
+
             var _trans$treeChanges = trans.treeChanges(),
                 entering = _trans$treeChanges.entering,
                 exiting = _trans$treeChanges.exiting,
                 retained = _trans$treeChanges.retained;
 
-            var touchedStates = [].concat(_toConsumableArray(entering), _toConsumableArray(exiting), _toConsumableArray(retained));
-            var touchedViews = touchedStates.reduce(function (acc, path) {
-                return [].concat(_toConsumableArray(acc), _toConsumableArray(path.views || []));
-            }, []);
-            var touchedViewsNames = touchedViews.map(_utils.getFullViewName);
+            var touchedNodes = [].concat(_toConsumableArray(entering), _toConsumableArray(retained));
+            var unresolved = touchedNodes.reduce(function (res, _ref) {
+                var resolvables = _ref.resolvables;
+                return res.concat(resolvables.filter(function (r) {
+                    return !r.resolved;
+                }));
+            }, []).map(function (r) {
+                return r.token;
+            });
 
-            var distinctView = new Set(touchedViewsNames);
+            touchedNodes.forEach(function (_ref2) {
+                var state = _ref2.state,
+                    views = _ref2.views;
+
+                if (!views || !views.length) return;
+                var allTokens = getAllSyncTokens(state);
+                var tokensForResolve = unresolved.filter(function (token) {
+                    return allTokens.indexOf(token) !== -1;
+                });
+                var promises = tokensForResolve.map(function (t) {
+                    return getOrResolve(injector, t);
+                });
+                var touchedViews = views.map(function (view) {
+                    var name = (0, _utils.getFullViewName)(view);
+                    if (!view.viewDecl.resolve || !view.viewDecl.resolve.length) {
+                        return {
+                            name: name,
+                            promises: promises
+                        };
+                    }
+
+                    return {
+                        name: name,
+                        promises: promises.concat(view.viewDecl.resolve.map(function (r) {
+                            return getOrResolve(injector, r);
+                        }))
+                    };
+                });
+
+                touchedViews.forEach(function (_ref3) {
+                    var name = _ref3.name,
+                        promises = _ref3.promises;
+
+                    if (!promises || !promises.length) return;
+
+                    start(name);
+                    $q.all(promises).finally(function () {
+                        return finish(name);
+                    }).catch(function (err) {
+                        return $log.warn(err);
+                    });
+                });
+            });
+
+            var distinctView = exiting.reduce(function (acc, path) {
+                return [].concat(_toConsumableArray(acc), _toConsumableArray(path.views || []));
+            }, []).map(_utils.getFullViewName).reduce(_angularjs.uniqR, []);
+
             distinctView.forEach(start);
             trans.promise.finally(function () {
                 return distinctView.forEach(finish);
@@ -115,15 +190,9 @@
         return {
             restrict: 'ECA',
             priority: -1000,
-            scope: {
-                track: '<'
-            },
             controller: _uiViewController2.default,
             compile: function compile() {
-                return function (scope, $element, attr) {
-                    var styles = (0, _extendedViews.getStyles)();
-                    var sizeCache = (0, _extendedViews.getSizeCache)();
-
+                return function (scope, $element, attr, $ctrl) {
                     var _$element$data = $element.data('$uiView'),
                         $cfg = _$element$data.$cfg;
 
@@ -139,24 +208,19 @@
 
                     var fullName = (0, _utils.getFullViewName)($cfg);
                     attr.$set('full-view-name', fullName);
-                    if (styles && styles.view) {
-                        $element.addClass(styles.view);
+
+                    var loadingClass = $element.attr('loading-class') || _extendedViews.defaultClasses.loading;
+                    if (_extendedViews.defaultClasses.view) {
+                        $element.addClass(_extendedViews.defaultClasses.view);
                     }
 
-                    var removeWatcher = add(fullName, function () {
-                        return styles && styles.loading && $element.addClass(styles.loading);
-                    }, function () {
-                        return styles && styles.loading && $element.removeClass(styles.loading);
-                    });
-
-                    var saveSize = function saveSize() {
-                        if (sizeCache) {
-                            sizeCache.set($cfg.viewDecl, $element.height());
-                        }
-                    };
-
-                    scope.$on('$destroy', removeWatcher);
-                    scope.$on('$destroy', saveSize);
+                    if (loadingClass) {
+                        $ctrl.onDestroy(add(fullName, function () {
+                            return $element.addClass(loadingClass);
+                        }, function () {
+                            return $element.removeClass(loadingClass);
+                        }));
+                    }
                 };
             }
         };

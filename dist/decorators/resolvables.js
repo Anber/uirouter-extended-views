@@ -53,25 +53,23 @@
         return target;
     };
 
-    function prepare(_ref) {
-        var name = _ref.name,
-            resolvable = _ref.resolvable;
-
+    function prepare(resolvable) {
         var policy = resolvable.policy || {};
-        return new _angularjs.Resolvable((0, _utils.getFullToken)(name, resolvable.token), resolvable.resolveFn, resolvable.deps, _extends({}, policy, { async: 'NOWAIT' }), resolvable.data);
+        return new _angularjs.Resolvable(resolvable, function () {
+            return resolvable.resolveFn.apply(resolvable, arguments);
+        }, resolvable.deps, _extends({}, policy, { async: 'NOWAIT' }), resolvable.data);
     }
 
     exports.default = function (state, parent) {
         var resolves = (0, _lodash4.default)((0, _lodash2.default)(state.views, function (v) {
-            return (0, _utils.normalizeResolvables)(v.resolve).map(function (r) {
-                return { name: v.$name, resolvable: r };
-            });
+            return (0, _utils.normalizeResolvables)(v.resolve);
         }));
         var resolvables = parent(state);
         if (resolves.length === 0) return resolvables;
 
-        return [].concat(_toConsumableArray(resolvables), _toConsumableArray(resolves.map(function (view) {
-            return prepare(view);
-        })));
+        var prepared = resolves.map(function (r) {
+            return prepare(r);
+        });
+        return [].concat(_toConsumableArray(resolvables), _toConsumableArray(prepared));
     };
 });

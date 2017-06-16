@@ -10,7 +10,7 @@ export default (state, parent) => {
             resolve: resolvables,
             bindings: resolvables.reduce((acc, r) => ({
                 ...acc,
-                [r.token]: `${getFullToken(view.$name, r.token, true)}`,
+                [r.token]: r.token,
             }), {}),
         };
     }

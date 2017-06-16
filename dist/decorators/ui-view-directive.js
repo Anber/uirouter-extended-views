@@ -1,16 +1,16 @@
 (function (global, factory) {
     if (typeof define === "function" && define.amd) {
-        define(['exports', '@uirouter/angularjs', '../utils'], factory);
+        define(['exports', '@uirouter/angularjs'], factory);
     } else if (typeof exports !== "undefined") {
-        factory(exports, require('@uirouter/angularjs'), require('../utils'));
+        factory(exports, require('@uirouter/angularjs'));
     } else {
         var mod = {
             exports: {}
         };
-        factory(mod.exports, global.angularjs, global.utils);
+        factory(mod.exports, global.angularjs);
         global.uiViewDirective = mod.exports;
     }
-})(this, function (exports, _angularjs, _utils) {
+})(this, function (exports, _angularjs) {
     'use strict';
 
     Object.defineProperty(exports, "__esModule", {
@@ -110,36 +110,31 @@
                         var $cfg = data.$cfg,
                             $uiView = data.$uiView;
 
-                        if (!$cfg) {
+                        if (!$cfg || !$cfg.viewDecl.resolve || !$cfg.viewDecl.resolve.length) {
                             linkFn(scope, $element, attr);
                             return;
                         }
 
-                        var _$cfg$viewDecl = $cfg.viewDecl,
-                            resolve = _$cfg$viewDecl.resolve,
-                            $name = _$cfg$viewDecl.$name;
-
-                        if (!resolve || resolve.length === 0) {
-                            linkFn(scope, $element, attr);
-                            return;
-                        }
+                        var resolve = $cfg.viewDecl.resolve;
 
                         var resolveCtx = $cfg.path && new _angularjs.ResolveContext($cfg.path);
-                        var locals = resolveCtx && (0, _angularjs.getLocals)(resolveCtx);
-
+                        var getAsync = function getAsync(token) {
+                            return resolveCtx && resolveCtx.getResolvable(token).get(resolveCtx);
+                        };
                         $q.all(resolve.map(function (r) {
-                            return locals[(0, _utils.getFullToken)($name, r.token)];
+                            return getAsync(r);
                         })).then(function (values) {
                             var _ng1ViewConfigFactory = ng1ViewConfigFactory([].concat(_toConsumableArray($cfg.path), [{
                                 state: {},
                                 resolvables: resolve.map(function (r, idx) {
-                                    return _angularjs.Resolvable.fromData('' + (0, _utils.getFullToken)($name, r.token, true), values[idx]);
+                                    return _angularjs.Resolvable.fromData(r.token, values[idx]);
                                 })
                             }]), $cfg.viewDecl),
                                 _ng1ViewConfigFactory2 = _slicedToArray(_ng1ViewConfigFactory, 1),
                                 newCfg = _ng1ViewConfigFactory2[0];
 
-                            newCfg.component = $cfg.component;
+                            return newCfg.load();
+                        }).then(function (newCfg) {
                             $element.data('$uiView', { $cfg: newCfg, $uiView: $uiView });
                             scope.$applyAsync(function ($scope) {
                                 return linkFn($scope, $element, attr);

@@ -31,24 +31,15 @@
         return target;
     };
 
-    var styles = null;
-    var sizeCache = null;
-
-    var getStyles = exports.getStyles = function getStyles() {
-        return styles;
-    };
-    var getSizeCache = exports.getSizeCache = function getSizeCache() {
-        return sizeCache;
+    var defaultClasses = exports.defaultClasses = {
+        view: null,
+        loading: null
     };
 
     exports.default = function () {
         var provider = {
-            setStyles: function setStyles(value) {
-                styles = value;
-                return provider;
-            },
-            setSizeCache: function setSizeCache(value) {
-                sizeCache = value;
+            setDefaultClasses: function setDefaultClasses(value) {
+                Object.assign(defaultClasses, value);
                 return provider;
             }
         };

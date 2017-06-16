@@ -1,8 +1,25 @@
-import { RejectType } from '@uirouter/angularjs';
+import { RejectType, uniqR } from '@uirouter/angularjs';
 
-import UiViewController from './ui-view-controller';
+import UiViewController  from './ui-view-controller';
 import { getFullViewName } from './utils';
-import { getSizeCache, getStyles } from './extendedViews';
+import { defaultClasses } from './extendedViews';
+
+function getAllSyncTokens(state) {
+    const tokens = state.resolvables.filter(r => !r.policy || r.policy.async !== 'NOWAIT').map(r => r.token);
+    if (!state.parent) {
+        return tokens;
+    }
+
+    return tokens.concat(getAllSyncTokens(state.parent));
+}
+
+function getOrResolve(injector, token) {
+    try {
+        return injector.get(token);
+    } catch (ex) {
+        return injector.getAsync(token);
+    }
+}
 
 export default function uiView($transitions, $log) {
     const views = {};
@@ -48,12 +65,54 @@ export default function uiView($transitions, $log) {
     const finish = name => applyState(name, 'onFinish');
 
     $transitions.onStart({}, (trans) => {
-        const { entering, exiting, retained } = trans.treeChanges();
-        const touchedStates = [...entering, ...exiting, ...retained];
-        const touchedViews = touchedStates.reduce((acc, path) => [...acc, ...(path.views || [])], []);
-        const touchedViewsNames = touchedViews.map(getFullViewName);
+        const injector = trans.injector();
+        const $q = injector.get('$q');
 
-        const distinctView = new Set(touchedViewsNames);
+        const { entering, exiting, retained } = trans.treeChanges();
+        const touchedNodes = [...entering, ...retained];
+        const unresolved = touchedNodes
+            .reduce(
+                (res, { resolvables }) => res.concat(resolvables.filter(r => !r.resolved)),
+                [],
+            )
+            .map(r => r.token);
+
+        touchedNodes.forEach(({ state, views }) => {
+            if (!views || !views.length) return;
+            const allTokens = getAllSyncTokens(state);
+            const tokensForResolve = unresolved.filter(token => allTokens.indexOf(token) !== -1);
+            const promises = tokensForResolve.map(t => getOrResolve(injector, t));
+            const touchedViews = views.map((view) => {
+                const name = getFullViewName(view);
+                if (!view.viewDecl.resolve || !view.viewDecl.resolve.length) {
+                    return {
+                        name,
+                        promises,
+                    };
+                }
+
+                return {
+                    name,
+                    promises: promises.concat(view.viewDecl.resolve.map(r => getOrResolve(injector, r))),
+                };
+            });
+
+            touchedViews.forEach(({ name, promises }) => {
+                if (!promises || !promises.length) return;
+
+                start(name);
+                $q.all(promises)
+                    .finally(() => finish(name))
+                    .catch(err => $log.warn(err));
+            });
+        });
+
+
+        const distinctView = exiting
+            .reduce((acc, path) => [...acc, ...(path.views || [])], [])
+            .map(getFullViewName)
+            .reduce(uniqR, []);
+
         distinctView.forEach(start);
         trans.promise
             .finally(
@@ -65,14 +124,8 @@ export default function uiView($transitions, $log) {
     return {
         restrict: 'ECA',
         priority: -1000,
-        scope: {
-            track: '<',
-        },
         controller: UiViewController,
-        compile: () => (scope, $element, attr) => {
-            const styles = getStyles();
-            const sizeCache = getSizeCache();
-
+        compile: () => (scope, $element, attr, $ctrl) => {
             const { $cfg } = $element.data('$uiView');
             if (!$cfg) {
                 return;
@@ -86,24 +139,19 @@ export default function uiView($transitions, $log) {
 
             const fullName = getFullViewName($cfg);
             attr.$set('full-view-name', fullName);
-            if (styles && styles.view) {
-                $element.addClass(styles.view);
+
+            const loadingClass = $element.attr('loading-class') || defaultClasses.loading;
+            if (defaultClasses.view) {
+                $element.addClass(defaultClasses.view);
             }
 
-            const removeWatcher = add(
-                fullName,
-                () => styles && styles.loading && $element.addClass(styles.loading),
-                () => styles && styles.loading && $element.removeClass(styles.loading),
-            );
-
-            const saveSize = () => {
-                if (sizeCache) {
-                    sizeCache.set($cfg.viewDecl, $element.height());
-                }
-            };
-
-            scope.$on('$destroy', removeWatcher);
-            scope.$on('$destroy', saveSize);
+            if (loadingClass) {
+                $ctrl.onDestroy(add(
+                    fullName,
+                    () => $element.addClass(loadingClass),
+                    () => $element.removeClass(loadingClass),
+                ));
+            }
         },
     };
 }

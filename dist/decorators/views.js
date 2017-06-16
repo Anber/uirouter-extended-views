@@ -75,7 +75,7 @@
             return _extends({}, view, {
                 resolve: resolvables,
                 bindings: resolvables.reduce(function (acc, r) {
-                    return _extends({}, acc, _defineProperty({}, r.token, '' + (0, _utils.getFullToken)(view.$name, r.token, true)));
+                    return _extends({}, acc, _defineProperty({}, r.token, r.token));
                 }, {})
             });
         }

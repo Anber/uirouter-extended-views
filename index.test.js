@@ -53,7 +53,7 @@ describe('extendedViews', () => {
     beforeEach(module((_$stateProvider_, $extendedViewsProvider) => {
         $stateProvider = _$stateProvider_;
 
-        $extendedViewsProvider.setStyles({
+        $extendedViewsProvider.setDefaultClasses({
             loading: 'loading',
             view: 'view',
         })

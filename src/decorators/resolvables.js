@@ -5,11 +5,11 @@ import compact from 'lodash.compact';
 
 import { getFullToken, normalizeResolvables } from '../utils';
 
-function prepare({ name, resolvable }) {
+function prepare(resolvable) {
     const policy = resolvable.policy || {};
     return new Resolvable(
-        getFullToken(name, resolvable.token),
-        resolvable.resolveFn,
+        resolvable,
+        (...args) => resolvable.resolveFn(...args),
         resolvable.deps,
         { ...policy, async: 'NOWAIT' },
         resolvable.data,
@@ -19,13 +19,14 @@ function prepare({ name, resolvable }) {
 export default (state, parent) => {
     const resolves = compact(flatMap(
         state.views,
-        v => normalizeResolvables(v.resolve).map(r => ({ name: v.$name, resolvable: r })),
+        v => normalizeResolvables(v.resolve),
     ));
     const resolvables = parent(state);
     if (resolves.length === 0) return resolvables;
 
+    const prepared = resolves.map(r => prepare(r));
     return [
         ...resolvables,
-        ...resolves.map(view => prepare(view)),
+        ...prepared,
     ];
 }
