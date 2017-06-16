@@ -1,31 +1,21 @@
 (function (global, factory) {
     if (typeof define === "function" && define.amd) {
-        define(['exports', '@uirouter/angularjs', 'lodash.flatmap', 'lodash.compact', '../utils'], factory);
+        define(['exports', '@uirouter/angularjs', '../utils'], factory);
     } else if (typeof exports !== "undefined") {
-        factory(exports, require('@uirouter/angularjs'), require('lodash.flatmap'), require('lodash.compact'), require('../utils'));
+        factory(exports, require('@uirouter/angularjs'), require('../utils'));
     } else {
         var mod = {
             exports: {}
         };
-        factory(mod.exports, global.angularjs, global.lodash, global.lodash, global.utils);
+        factory(mod.exports, global.angularjs, global.utils);
         global.resolvables = mod.exports;
     }
-})(this, function (exports, _angularjs, _lodash, _lodash3, _utils) {
+})(this, function (exports, _angularjs, _utils) {
     'use strict';
 
     Object.defineProperty(exports, "__esModule", {
         value: true
     });
-
-    var _lodash2 = _interopRequireDefault(_lodash);
-
-    var _lodash4 = _interopRequireDefault(_lodash3);
-
-    function _interopRequireDefault(obj) {
-        return obj && obj.__esModule ? obj : {
-            default: obj
-        };
-    }
 
     function _toConsumableArray(arr) {
         if (Array.isArray(arr)) {
@@ -61,9 +51,20 @@
     }
 
     exports.default = function (state, parent) {
-        var resolves = (0, _lodash4.default)((0, _lodash2.default)(state.views, function (v) {
+        var allStateResolvables = (0, _angularjs.flatten)(state.path.map(function (node) {
+            return node.resolvables;
+        })).filter(function (r) {
+            return r;
+        }).map(function (r) {
+            return r.token;
+        });
+
+        var resolves = (0, _angularjs.flatten)((0, _angularjs.values)(state.views).map(function (v) {
             return (0, _utils.normalizeResolvables)(v.resolve);
-        }));
+        })).filter(function (r) {
+            return r && allStateResolvables.indexOf(r) === -1;
+        });
+
         var resolvables = parent(state);
         if (resolves.length === 0) return resolvables;
 

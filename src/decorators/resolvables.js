@@ -1,9 +1,6 @@
-import { Resolvable } from '@uirouter/angularjs';
+import { Resolvable, flatten, values } from '@uirouter/angularjs';
 
-import flatMap from 'lodash.flatmap';
-import compact from 'lodash.compact';
-
-import { getFullToken, normalizeResolvables } from '../utils';
+import { normalizeResolvables } from '../utils';
 
 function prepare(resolvable) {
     const policy = resolvable.policy || {};
@@ -17,10 +14,13 @@ function prepare(resolvable) {
 }
 
 export default (state, parent) => {
-    const resolves = compact(flatMap(
-        state.views,
-        v => normalizeResolvables(v.resolve),
-    ));
+    const allStateResolvables = flatten(state.path.map(node => node.resolvables))
+        .filter(r => r)
+        .map(r => r.token);
+
+    const resolves = flatten(values(state.views).map(v => normalizeResolvables(v.resolve)))
+        .filter(r => r && allStateResolvables.indexOf(r) === -1);
+
     const resolvables = parent(state);
     if (resolves.length === 0) return resolvables;
 
