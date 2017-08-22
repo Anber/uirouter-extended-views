@@ -1,16 +1,16 @@
 (function (global, factory) {
     if (typeof define === "function" && define.amd) {
-        define(['exports', '@uirouter/angularjs', './ui-view-controller', './utils', './extendedViews'], factory);
+        define(['exports', '@uirouter/core', './ui-view-controller', './utils', './extendedViews'], factory);
     } else if (typeof exports !== "undefined") {
-        factory(exports, require('@uirouter/angularjs'), require('./ui-view-controller'), require('./utils'), require('./extendedViews'));
+        factory(exports, require('@uirouter/core'), require('./ui-view-controller'), require('./utils'), require('./extendedViews'));
     } else {
         var mod = {
             exports: {}
         };
-        factory(mod.exports, global.angularjs, global.uiViewController, global.utils, global.extendedViews);
+        factory(mod.exports, global.core, global.uiViewController, global.utils, global.extendedViews);
         global.uiView = mod.exports;
     }
-})(this, function (exports, _angularjs, _uiViewController, _utils, _extendedViews) {
+})(this, function (exports, _core, _uiViewController, _utils, _extendedViews) {
     'use strict';
 
     Object.defineProperty(exports, "__esModule", {
@@ -177,13 +177,13 @@
 
             var distinctView = exiting.reduce(function (acc, path) {
                 return [].concat(_toConsumableArray(acc), _toConsumableArray(path.views || []));
-            }, []).map(_utils.getFullViewName).reduce(_angularjs.uniqR, []);
+            }, []).map(_utils.getFullViewName).reduce(_core.uniqR, []);
 
             distinctView.forEach(start);
             trans.promise.finally(function () {
                 return distinctView.forEach(finish);
             }).catch(function (err) {
-                return err.type !== _angularjs.RejectType.SUPERSEDED && $log.warn(err);
+                return err.type !== _core.RejectType.SUPERSEDED && $log.warn(err);
             });
         });
 

@@ -1,16 +1,16 @@
 (function (global, factory) {
     if (typeof define === "function" && define.amd) {
-        define(['exports', '@uirouter/angularjs', './ui-view-spinner', './content-cache'], factory);
+        define(['exports', '@uirouter/core', './ui-view-spinner', './content-cache'], factory);
     } else if (typeof exports !== "undefined") {
-        factory(exports, require('@uirouter/angularjs'), require('./ui-view-spinner'), require('./content-cache'));
+        factory(exports, require('@uirouter/core'), require('./ui-view-spinner'), require('./content-cache'));
     } else {
         var mod = {
             exports: {}
         };
-        factory(mod.exports, global.angularjs, global.uiViewSpinner, global.contentCache);
+        factory(mod.exports, global.core, global.uiViewSpinner, global.contentCache);
         global.uiViewController = mod.exports;
     }
-})(this, function (exports, _angularjs, _uiViewSpinner, _contentCache) {
+})(this, function (exports, _core, _uiViewSpinner, _contentCache) {
     'use strict';
 
     Object.defineProperty(exports, "__esModule", {
@@ -74,7 +74,7 @@
             this.$scope = $scope;
 
             if (this.deps.length) {
-                var resolveCtx = $cfg.path && new _angularjs.ResolveContext($cfg.path);
+                var resolveCtx = $cfg.path && new _core.ResolveContext($cfg.path);
                 $scope.$watchGroup(this.deps.map(function (token) {
                     return function () {
                         return resolveCtx.getResolvable(token).get(resolveCtx);
@@ -82,7 +82,7 @@
                 }), function (promises) {
                     spinner.show();
 
-                    if (!(0, _angularjs.any)(function (p) {
+                    if (!(0, _core.any)(function (p) {
                         return p !== undefined;
                     })(promises)) {
                         return;

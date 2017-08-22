@@ -1,4 +1,4 @@
-import { RejectType, uniqR } from '@uirouter/angularjs';
+import { RejectType, uniqR } from '@uirouter/core';
 
 import UiViewController  from './ui-view-controller';
 import { getFullViewName } from './utils';

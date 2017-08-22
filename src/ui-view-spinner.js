@@ -1,4 +1,4 @@
-import { noop } from '@uirouter/angularjs';
+import { noop } from '@uirouter/core';
 import { defaultClasses } from './extendedViews';
 
 export default class UiViewSpinner {

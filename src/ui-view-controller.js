@@ -1,4 +1,4 @@
-import { ResolveContext, any } from '@uirouter/angularjs';
+import { ResolveContext, any } from '@uirouter/core';
 
 import UiViewSpinner from './ui-view-spinner';
 import contentCache from './content-cache';

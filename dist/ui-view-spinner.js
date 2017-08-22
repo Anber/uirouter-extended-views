@@ -1,16 +1,16 @@
 (function (global, factory) {
     if (typeof define === "function" && define.amd) {
-        define(['exports', '@uirouter/angularjs', './extendedViews'], factory);
+        define(['exports', '@uirouter/core', './extendedViews'], factory);
     } else if (typeof exports !== "undefined") {
-        factory(exports, require('@uirouter/angularjs'), require('./extendedViews'));
+        factory(exports, require('@uirouter/core'), require('./extendedViews'));
     } else {
         var mod = {
             exports: {}
         };
-        factory(mod.exports, global.angularjs, global.extendedViews);
+        factory(mod.exports, global.core, global.extendedViews);
         global.uiViewSpinner = mod.exports;
     }
-})(this, function (exports, _angularjs, _extendedViews) {
+})(this, function (exports, _core, _extendedViews) {
     'use strict';
 
     Object.defineProperty(exports, "__esModule", {
@@ -55,8 +55,8 @@
         function UiViewSpinner($element) {
             _classCallCheck(this, UiViewSpinner);
 
-            this.show = _angularjs.noop;
-            this.hide = _angularjs.noop;
+            this.show = _core.noop;
+            this.hide = _core.noop;
 
             var loadingClass = $element.attr('loading-class') || _extendedViews.defaultClasses.loading;
 

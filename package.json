@@ -1,6 +1,6 @@
 {
   "name": "uirouter-extended-views",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "Extended version of ui-view",
   "main": "dist/index.js",
   "jsnext:main": "src/index.js",
@@ -31,7 +31,8 @@
     "regenerator-runtime": "^0.10.3"
   },
   "dependencies": {
-    "@uirouter/angularjs": "^1.0.3",
+    "@uirouter/angularjs": "^1.0.6",
+    "@uirouter/core": "^5.0.6",
     "lodash.map": "^4.6.0",
     "lodash.mapvalues": "^4.6.0"
   },

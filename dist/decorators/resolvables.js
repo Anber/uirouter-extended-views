@@ -1,16 +1,16 @@
 (function (global, factory) {
     if (typeof define === "function" && define.amd) {
-        define(['exports', '@uirouter/angularjs', '../utils'], factory);
+        define(['exports', '@uirouter/core', '../utils'], factory);
     } else if (typeof exports !== "undefined") {
-        factory(exports, require('@uirouter/angularjs'), require('../utils'));
+        factory(exports, require('@uirouter/core'), require('../utils'));
     } else {
         var mod = {
             exports: {}
         };
-        factory(mod.exports, global.angularjs, global.utils);
+        factory(mod.exports, global.core, global.utils);
         global.resolvables = mod.exports;
     }
-})(this, function (exports, _angularjs, _utils) {
+})(this, function (exports, _core, _utils) {
     'use strict';
 
     Object.defineProperty(exports, "__esModule", {
@@ -45,13 +45,13 @@
 
     function prepare(resolvable) {
         var policy = resolvable.policy || {};
-        return new _angularjs.Resolvable(resolvable, function () {
+        return new _core.Resolvable(resolvable, function () {
             return resolvable.resolveFn.apply(resolvable, arguments);
         }, resolvable.deps, _extends({}, policy, { async: 'NOWAIT' }), resolvable.data);
     }
 
     exports.default = function (state, parent) {
-        var allStateResolvables = (0, _angularjs.flatten)(state.path.map(function (node) {
+        var allStateResolvables = (0, _core.flatten)(state.path.map(function (node) {
             return node.resolvables;
         })).filter(function (r) {
             return r;
@@ -59,7 +59,7 @@
             return r.token;
         });
 
-        var resolves = (0, _angularjs.flatten)((0, _angularjs.values)(state.views).map(function (v) {
+        var resolves = (0, _core.flatten)((0, _core.values)(state.views).map(function (v) {
             return (0, _utils.normalizeResolvables)(v.resolve);
         })).filter(function (r) {
             return r && allStateResolvables.indexOf(r) === -1;

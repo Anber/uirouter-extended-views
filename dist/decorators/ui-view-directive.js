@@ -1,16 +1,16 @@
 (function (global, factory) {
     if (typeof define === "function" && define.amd) {
-        define(['exports', '@uirouter/angularjs'], factory);
+        define(['exports', '@uirouter/angularjs', '@uirouter/core'], factory);
     } else if (typeof exports !== "undefined") {
-        factory(exports, require('@uirouter/angularjs'));
+        factory(exports, require('@uirouter/angularjs'), require('@uirouter/core'));
     } else {
         var mod = {
             exports: {}
         };
-        factory(mod.exports, global.angularjs);
+        factory(mod.exports, global.angularjs, global.core);
         global.uiViewDirective = mod.exports;
     }
-})(this, function (exports, _angularjs) {
+})(this, function (exports, _angularjs, _core) {
     'use strict';
 
     Object.defineProperty(exports, "__esModule", {
@@ -117,7 +117,7 @@
 
                         var resolve = $cfg.viewDecl.resolve;
 
-                        var resolveCtx = $cfg.path && new _angularjs.ResolveContext($cfg.path);
+                        var resolveCtx = $cfg.path && new _core.ResolveContext($cfg.path);
                         var getAsync = function getAsync(token) {
                             return resolveCtx && resolveCtx.getResolvable(token).get(resolveCtx);
                         };
@@ -127,7 +127,7 @@
                             var _ng1ViewConfigFactory = ng1ViewConfigFactory([].concat(_toConsumableArray($cfg.path), [{
                                 state: {},
                                 resolvables: resolve.map(function (r, idx) {
-                                    return _angularjs.Resolvable.fromData(r.token, values[idx]);
+                                    return _core.Resolvable.fromData(r.token, values[idx]);
                                 })
                             }]), $cfg.viewDecl),
                                 _ng1ViewConfigFactory2 = _slicedToArray(_ng1ViewConfigFactory, 1),

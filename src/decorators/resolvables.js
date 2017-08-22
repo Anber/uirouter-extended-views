@@ -1,4 +1,4 @@
-import { Resolvable, flatten, values } from '@uirouter/angularjs';
+import { Resolvable, flatten, values } from '@uirouter/core';
 
 import { normalizeResolvables } from '../utils';
 

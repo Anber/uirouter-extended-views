@@ -1,4 +1,5 @@
-import { getNg1ViewConfigFactory, Resolvable, ResolveContext } from '@uirouter/angularjs';
+import { getNg1ViewConfigFactory } from '@uirouter/angularjs';
+import { Resolvable, ResolveContext } from '@uirouter/core';
 
 const ng1ViewConfigFactory = getNg1ViewConfigFactory();
 
