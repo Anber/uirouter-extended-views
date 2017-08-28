@@ -6,7 +6,9 @@ import contentCache from './content-cache';
 export default class UiViewController {
     onDestroyCallbacks = [];
 
-    constructor($state, $element, $scope, $q) {
+    constructor($animate, $state, $element, $scope, $q) {
+        $animate.enabled($element, false);
+
         this.$state = $state;
         this.$element = $element;
 
@@ -64,4 +66,4 @@ export default class UiViewController {
     }
 }
 
-UiViewController.$inject = ['$state', '$element', '$scope', '$q'];
+UiViewController.$inject = ['$animate', '$state', '$element', '$scope', '$q'];
