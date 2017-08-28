@@ -64,7 +64,7 @@ export default function uiView($transitions, $log) {
     const start = name => applyState(name, 'onStart');
     const finish = name => applyState(name, 'onFinish');
 
-    $transitions.onStart({}, (trans) => {
+    $transitions.onBefore({}, (trans) => {
         const injector = trans.injector();
         const $q = injector.get('$q');
 
