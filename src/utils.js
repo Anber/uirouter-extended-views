@@ -1,7 +1,7 @@
 import { Resolvable, $injector, tail, isArray, pushR } from '@uirouter/core';
 
-export function getFullViewName({ viewDecl: { $uiViewContextAnchor: stateName, $name: viewName } }) {
-    return viewName.indexOf('@') >= 0 ? viewName : `${viewName}@${stateName}`;
+export function getFullViewName({ viewDecl: { $uiViewContextAnchor: stateName, $uiViewName: viewName } }) {
+    return `${viewName}@${stateName}`;
 }
 
 export function normalizeResolvables(resolve = []) {
