@@ -112,7 +112,7 @@
             return applyState(name, 'onFinish');
         };
 
-        $transitions.onStart({}, function (trans) {
+        $transitions.onBefore({}, function (trans) {
             var injector = trans.injector();
             var $q = injector.get('$q');
 
@@ -183,7 +183,7 @@
             trans.promise.finally(function () {
                 return distinctView.forEach(finish);
             }).catch(function (err) {
-                return err.type !== _core.RejectType.SUPERSEDED && $log.warn(err);
+                return [_core.RejectType.SUPERSEDED, _core.RejectType.ABORTED].indexOf(err.type) === -1 && $log.warn(err);
             });
         });
 

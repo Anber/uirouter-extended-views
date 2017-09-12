@@ -52,10 +52,12 @@
     }();
 
     var UiViewController = function () {
-        function UiViewController($state, $element, $scope, $q) {
+        function UiViewController($animate, $state, $element, $scope, $q) {
             _classCallCheck(this, UiViewController);
 
             this.onDestroyCallbacks = [];
+
+            $animate.enabled($element, false);
 
             this.$state = $state;
             this.$element = $element;
@@ -134,5 +136,5 @@
     exports.default = UiViewController;
 
 
-    UiViewController.$inject = ['$state', '$element', '$scope', '$q'];
+    UiViewController.$inject = ['$animate', '$state', '$element', '$scope', '$q'];
 });

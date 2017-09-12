@@ -118,7 +118,7 @@ export default function uiView($transitions, $log) {
             .finally(
                 () => distinctView.forEach(finish),
             )
-            .catch(err => err.type !== RejectType.SUPERSEDED && $log.warn(err));
+            .catch(err => [RejectType.SUPERSEDED, RejectType.ABORTED].indexOf(err.type) === -1 && $log.warn(err));
     });
 
     return {

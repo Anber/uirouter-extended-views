@@ -21,9 +21,9 @@
     function getFullViewName(_ref) {
         var _ref$viewDecl = _ref.viewDecl,
             stateName = _ref$viewDecl.$uiViewContextAnchor,
-            viewName = _ref$viewDecl.$name;
+            viewName = _ref$viewDecl.$uiViewName;
 
-        return viewName.indexOf('@') >= 0 ? viewName : viewName + '@' + stateName;
+        return viewName + '@' + stateName;
     }
 
     function normalizeResolvables() {
