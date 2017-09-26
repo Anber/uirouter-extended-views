@@ -114,11 +114,12 @@ export default function uiView($transitions, $log) {
             .reduce(uniqR, []);
 
         distinctView.forEach(start);
+        const ignoredErrors = [RejectType.SUPERSEDED, RejectType.ABORTED, RejectType.IGNORED];
         trans.promise
             .finally(
                 () => distinctView.forEach(finish),
             )
-            .catch(err => [RejectType.SUPERSEDED, RejectType.ABORTED].indexOf(err.type) === -1 && $log.warn(err));
+            .catch(err => ignoredErrors.indexOf(err.type) === -1 && $log.warn(err));
     });
 
     return {
