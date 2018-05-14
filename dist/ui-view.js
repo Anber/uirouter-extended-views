@@ -51,15 +51,7 @@
         return tokens.concat(getAllSyncTokens(state.parent));
     }
 
-    function getOrResolve(injector, token) {
-        try {
-            return injector.get(token);
-        } catch (ex) {
-            return injector.getAsync(token);
-        }
-    }
-
-    function uiView($transitions, $log) {
+    function uiView($transitions, $uiViewErrorHandler) {
         var views = {};
 
         var add = function add(name, onStart, onFinish) {
@@ -141,7 +133,7 @@
                     return allTokens.indexOf(token) !== -1;
                 });
                 var promises = tokensForResolve.map(function (t) {
-                    return getOrResolve(injector, t);
+                    return injector.getAsync(t);
                 });
                 var touchedViews = views.map(function (view) {
                     var name = (0, _utils.getFullViewName)(view);
@@ -152,11 +144,12 @@
                         };
                     }
 
+                    var viewPromises = view.viewDecl.resolve.map(function (r) {
+                        return injector.getAsync(r);
+                    });
                     return {
                         name: name,
-                        promises: promises.concat(view.viewDecl.resolve.map(function (r) {
-                            return getOrResolve(injector, r);
-                        }))
+                        promises: promises.concat(viewPromises)
                     };
                 });
 
@@ -170,7 +163,7 @@
                     $q.all(promises).finally(function () {
                         return finish(name);
                     }).catch(function (err) {
-                        return $log.warn(err);
+                        return $uiViewErrorHandler('resolve', err);
                     });
                 });
             });
@@ -183,7 +176,7 @@
             trans.promise.finally(function () {
                 return distinctView.forEach(finish);
             }).catch(function (err) {
-                return [_core.RejectType.SUPERSEDED, _core.RejectType.ABORTED].indexOf(err.type) === -1 && $log.warn(err);
+                return $uiViewErrorHandler('render', err);
             });
         });
 
@@ -226,5 +219,5 @@
         };
     }
 
-    uiView.$inject = ['$transitions', '$log'];
+    uiView.$inject = ['$transitions', '$uiViewErrorHandler'];
 });

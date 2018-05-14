@@ -1,4 +1,4 @@
-import { RejectType, uniqR } from '@uirouter/core';
+import { uniqR } from '@uirouter/core';
 
 import UiViewController  from './ui-view-controller';
 import { getFullViewName } from './utils';
@@ -13,15 +13,7 @@ function getAllSyncTokens(state) {
     return tokens.concat(getAllSyncTokens(state.parent));
 }
 
-function getOrResolve(injector, token) {
-    try {
-        return injector.get(token);
-    } catch (ex) {
-        return injector.getAsync(token);
-    }
-}
-
-export default function uiView($transitions, $log) {
+export default function uiView($transitions, $uiViewErrorHandler) {
     const views = {};
 
     const add = (name, onStart, onFinish) => {
@@ -81,7 +73,7 @@ export default function uiView($transitions, $log) {
             if (!views || !views.length) return;
             const allTokens = getAllSyncTokens(state);
             const tokensForResolve = unresolved.filter(token => allTokens.indexOf(token) !== -1);
-            const promises = tokensForResolve.map(t => getOrResolve(injector, t));
+            const promises = tokensForResolve.map(t => injector.getAsync(t));
             const touchedViews = views.map((view) => {
                 const name = getFullViewName(view);
                 if (!view.viewDecl.resolve || !view.viewDecl.resolve.length) {
@@ -91,9 +83,10 @@ export default function uiView($transitions, $log) {
                     };
                 }
 
+                const viewPromises = view.viewDecl.resolve.map(r => injector.getAsync(r));
                 return {
                     name,
-                    promises: promises.concat(view.viewDecl.resolve.map(r => getOrResolve(injector, r))),
+                    promises: promises.concat(viewPromises),
                 };
             });
 
@@ -103,7 +96,7 @@ export default function uiView($transitions, $log) {
                 start(name);
                 $q.all(promises)
                     .finally(() => finish(name))
-                    .catch(err => $log.warn(err));
+                    .catch(err => $uiViewErrorHandler('resolve', err));
             });
         });
 
@@ -114,12 +107,11 @@ export default function uiView($transitions, $log) {
             .reduce(uniqR, []);
 
         distinctView.forEach(start);
-        const ignoredErrors = [RejectType.SUPERSEDED, RejectType.ABORTED, RejectType.IGNORED];
         trans.promise
             .finally(
                 () => distinctView.forEach(finish),
             )
-            .catch(err => ignoredErrors.indexOf(err.type) === -1 && $log.warn(err));
+            .catch(err => $uiViewErrorHandler('render', err));
     });
 
     return {
@@ -157,4 +149,4 @@ export default function uiView($transitions, $log) {
     };
 }
 
-uiView.$inject = ['$transitions', '$log'];
+uiView.$inject = ['$transitions', '$uiViewErrorHandler'];
