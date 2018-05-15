@@ -1,6 +1,6 @@
 {
   "name": "uirouter-extended-views",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "description": "Extended version of ui-view",
   "main": "dist/index.js",
   "jsnext:main": "src/index.js",
@@ -20,7 +20,6 @@
     "url": "https://github.com/Anber/uirouter-extended-views/issues"
   },
   "devDependencies": {
-    "angular": "^1.6.4",
     "angular-mocks": "^1.6.4",
     "babel-cli": "^6.24.1",
     "babel-jest": "^19.0.0",
@@ -30,13 +29,13 @@
     "lodash.defaultsdeep": "^4.6.0",
     "regenerator-runtime": "^0.10.3"
   },
-  "dependencies": {
+  "peerDependencies": {
     "@uirouter/angularjs": "^1.0.6",
     "@uirouter/core": "^5.0.6",
+    "angular": "^1.2.0"
+  },
+  "dependencies": {
     "lodash.map": "^4.6.0",
     "lodash.mapvalues": "^4.6.0"
-  },
-  "peerDependencies": {
-    "angular": ">=1.2.0"
   }
 }
