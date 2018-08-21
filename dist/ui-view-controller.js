@@ -70,7 +70,7 @@
             this.deps = $cfg && $cfg.viewDecl.resolve || [];
 
             if ($cfg) {
-                $element.html(_contentCache2.default.get($cfg.viewDecl) || null);
+                $element.html(_contentCache2.default.get($cfg.viewDecl) || undefined);
             }
 
             this.$scope = $scope;

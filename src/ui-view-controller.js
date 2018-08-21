@@ -18,7 +18,7 @@ export default class UiViewController {
         this.deps = $cfg && $cfg.viewDecl.resolve || [];
 
         if ($cfg) {
-            $element.html(contentCache.get($cfg.viewDecl) || null);
+            $element.html(contentCache.get($cfg.viewDecl) || undefined);
         }
 
         this.$scope = $scope;
