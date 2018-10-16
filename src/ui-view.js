@@ -119,10 +119,9 @@ export default function uiView($transitions, $uiViewErrorHandler) {
         priority: -1000,
         controller: UiViewController,
         compile: () => (scope, $element, attr, $ctrl) => {
-            const { $cfg } = $element.data('$uiView');
-            if (!$cfg) {
-                return;
-            }
+            const { $uiView } = $element.data('$uiView');
+            const { creationContext: { name: stateName }, name: viewName } = $uiView;
+            const fullName = `${viewName}@${stateName}`;
 
             const loadingMessage = attr.loadingMessage || $element.inheritedData('loadingMessage');
             if (loadingMessage) {
@@ -130,7 +129,6 @@ export default function uiView($transitions, $uiViewErrorHandler) {
                 attr.$set('loadingMessage', loadingMessage);
             }
 
-            const fullName = getFullViewName($cfg);
             attr.$set('full-view-name', fullName);
 
             const loadingClass = $element.attr('loading-class') || defaultClasses.loading;
